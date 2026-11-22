@@ -36,8 +36,38 @@ start(["alignment.json"], (d) => {
     }
   }
 
+  // Where the total and the boxed breakdown sit in the top and bottom right corners of the chart space (wide frames),
+  // the pie moves left of centre only as far as it must to keep 12px clear of both, and shrinks only if it must;
+  // elsewhere it is centred, at its full size. Run after each draw, once the page has laid out (on a timer, which runs
+  // in a frame scrolled out of view, as animation frames may not).
+  let fitting;
+  function queueFit(ch) {
+    clearTimeout(fitting);
+    fitting = setTimeout(() => fitPie(ch), 0);
+  }
+  function fitPie(ch) {
+    const s = ch.series[0], w = ch.plotWidth, h = ch.plotHeight, cy = Math.floor(h / 2);
+    // Full size leaves 10px round the pie.
+    let r = Math.floor(Math.min(w, h) / 2) - 10, cx = w / 2;
+    if (getComputedStyle(el("inset")).position === "absolute") {
+      const origin = el("chart").getBoundingClientRect(), gap = 12;
+      const boxes = [el("total"), el("inset")].map((e) => e.getBoundingClientRect())
+        .map((b) => [b.left - origin.left - ch.plotLeft, b.top - origin.top - ch.plotTop, b.bottom - origin.top - ch.plotTop]);
+      for (; r > h / 3; r -= 2) {
+        cx = w / 2;
+        for (const [left, top, bottom] of boxes) {
+          const dy = cy < top ? top - cy : cy > bottom ? cy - bottom : 0;
+          if (dy < r + gap) cx = Math.min(cx, left - Math.sqrt((r + gap) ** 2 - dy ** 2));
+        }
+        if (cx >= r) break;
+      }
+    }
+    const center = [Math.floor(cx), cy], size = 2 * r;
+    if (String(s.options.center) !== String(center) || s.options.size !== size) s.update({ center, size });
+  }
+
   const chart = Highcharts.chart(el("chart"), {
-    chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); } } },
+    chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); queueFit(this); } } },
     accessibility: { screenReaderSection: { beforeChartFormat: screenReaderHeading("Global military spending by alignment chart") },
       description: `Global military expenditure in ${d.year}, ${usd(d.total)}bn: US and US-aligned ${usd(aligned)}bn (${alignedPct}%), `
         + `not US-aligned ${usd(g.not_aligned)}bn (${100 - alignedPct}%).`,
@@ -45,7 +75,8 @@ start(["alignment.json"], (d) => {
     legend: { enabled: false },
     // No tooltips, and nothing changes on hover: the labels say it all.
     tooltip: { enabled: false },
-    plotOptions: { pie: { startAngle: 0, borderWidth: 1, borderColor: "#ffffff", size: "100%",
+    // No room kept for pulled-out slices, so the centre and size fitPie gives are the pie's own.
+    plotOptions: { pie: { startAngle: 0, borderWidth: 1, borderColor: "#ffffff", size: "100%", slicedOffset: 0,
       states: { hover: { enabled: false }, inactive: { enabled: false } },
       // Room for each label's longest line, or Highcharts squeezes the box and that line spills to the right of the
       // others; placeLabels moves the boxes, and nothing is hidden for overlapping where Highcharts first puts them.
@@ -76,6 +107,10 @@ start(["alignment.json"], (d) => {
       list.append(dt, dd);
     }
     inset.append(list);
+    // The world's total, in the chart's units.
+    const total = document.createElement("b");
+    total.textContent = usd(d.total);
+    el("total").replaceChildren("Total", total);
     el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. US-aligned covers "
       + "NATO members, US major non-NATO allies, Shield of the Americas members and US security partners, and includes "
       + `EU-level expenditure. The US-aligned grouping is ${d.aligned_entities} entities; ${d.not_aligned_countries} countries `
@@ -85,5 +120,7 @@ start(["alignment.json"], (d) => {
 
 
   update();
+  // The first fit before the page is first painted, so the pie doesn't jump.
+  fitPie(chart);
   window.matchMedia("(max-width: 499px)").addEventListener("change", update);
 });
