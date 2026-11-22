@@ -36,10 +36,10 @@ start(["alignment.json"], (d) => {
     }
   }
 
-  // Where the total and the boxed breakdown sit in the top and bottom right corners of the chart space (wide frames),
-  // the pie moves left of centre only as far as it must to keep 12px clear of both, and shrinks only if it must;
-  // elsewhere it is centred, at its full size. Run after each draw, once the page has laid out (on a timer, which runs
-  // in a frame scrolled out of view, as animation frames may not).
+  // Where the boxed breakdown sits in the bottom right corner of the chart space (wide frames), the pie moves left of
+  // centre only as far as it must to keep 12px clear of it, and shrinks only if it must; elsewhere it is centred, at
+  // its full size. Run after each draw, once the page has laid out (on a timer, which runs in a frame scrolled out of
+  // view, as animation frames may not).
   let fitting;
   function queueFit(ch) {
     clearTimeout(fitting);
@@ -51,7 +51,7 @@ start(["alignment.json"], (d) => {
     let r = Math.floor(Math.min(w, h) / 2) - 10, cx = w / 2;
     if (getComputedStyle(el("inset")).position === "absolute") {
       const origin = el("chart").getBoundingClientRect(), gap = 12;
-      const boxes = [el("total"), el("inset")].map((e) => e.getBoundingClientRect())
+      const boxes = [el("inset")].map((e) => e.getBoundingClientRect())
         .map((b) => [b.left - origin.left - ch.plotLeft, b.top - origin.top - ch.plotTop, b.bottom - origin.top - ch.plotTop]);
       for (; r > h / 3; r -= 2) {
         cx = w / 2;
@@ -64,10 +64,22 @@ start(["alignment.json"], (d) => {
     }
     const center = [Math.floor(cx), cy], size = 2 * r;
     if (String(s.options.center) !== String(center) || s.options.size !== size) s.update({ center, size });
+    else placeTotal(ch);
+  }
+
+  // The boxed total overlaps the pie's top right edge: its bottom left corner sits on the line at 45 degrees from the
+  // pie's centre, 85% of the way out, so the box covers a little of the pie's rim, clear of the slices' labels. It
+  // stays inside the chart space, overlapping a little more where it must.
+  function placeTotal(ch) {
+    const box = el("total"), [cx, cy, d] = ch.series[0].center, along = 0.85 * (d / 2) * Math.SQRT1_2;
+    const left = Math.min(ch.plotLeft + cx + along, ch.chartWidth - box.offsetWidth);
+    const top = Math.max(ch.plotTop + cy - along - box.offsetHeight, 0);
+    box.style.left = `${Math.round(left)}px`;
+    box.style.top = `${Math.round(top)}px`;
   }
 
   const chart = Highcharts.chart(el("chart"), {
-    chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); queueFit(this); } } },
+    chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); placeTotal(this); queueFit(this); } } },
     accessibility: { screenReaderSection: { beforeChartFormat: screenReaderHeading("Global military spending by alignment chart") },
       description: `Global military expenditure in ${d.year}, ${usd(d.total)}bn: US and US-aligned ${usd(aligned)}bn (${alignedPct}%), `
         + `not US-aligned ${usd(g.not_aligned)}bn (${100 - alignedPct}%).`,

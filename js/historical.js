@@ -46,8 +46,8 @@ start(["model_inputs.json"], (inputs) => {
     },
     tooltip: { formatter() { return `${lab(this.x)}: £${this.y.toFixed(1)}bn`; } },
     series: [
-      { name: "NATO", color: COLOURS.blue, lineWidth: 2.5, data: [] },
-      { name: "Announced path", color: COLOURS.blue, lineWidth: 2.5, dashStyle: "Dash", data: [],
+      { name: "NATO", color: COLOURS.blue, lineWidth: 3, data: [] },
+      { name: "Announced path", color: COLOURS.blue, lineWidth: 3, dashStyle: "Dash", data: [],
         // Its first point is the NATO figure the path starts from.
         accessibility: { point: { descriptionFormatter: (p) =>
           pointText(p.x, p.x > PRICE_YEAR ? p.series.name : p.series.chart.series[0].name, p.y) } } },

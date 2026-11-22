@@ -24,7 +24,7 @@ start(["model_inputs.json"], (inputs) => {
     { key: "units", label: "Units", options: [{ value: "cash", label: "Cash" }, { value: "real", label: `Real terms, ${prices}` }],
       help: (s) => (s.units === "real" ? "Real terms: adjusted for inflation with the GDP deflator, the price of everything the UK produces." : "") },
     { key: "held_year", label: "Baseline", options: [
-      { value: String(BASE - 1), label: `${lab(BASE - 1)} share` }, { value: String(BASE), label: `${lab(BASE)} share` }] },
+      { value: String(BASE - 1), label: `${lab(BASE - 1)} share of GDP` }, { value: String(BASE), label: `${lab(BASE)} share of GDP` }] },
   ];
   const state = {};
   readHash(GROUPS, state, DEFAULTS);
@@ -50,9 +50,9 @@ start(["model_inputs.json"], (inputs) => {
       // The gap, with its total written inside it (the last series). Screen readers skip both: the description gives it.
       { type: "arearange", name: "Extra spending", color: COLOURS.green, fillOpacity: 1, lineWidth: 0, enableMouseTracking: false,
         data: [], zIndex: 0, accessibility: { enabled: false } },
-      { name: `Spending to ${lab(BASE)}, then the announced path`, color: COLOURS.blue, lineWidth: 2.5, data: [], zIndex: 3,
+      { name: `Spending to ${lab(BASE)}, then the announced path`, color: COLOURS.blue, lineWidth: 3, data: [], zIndex: 3,
         accessibility: { point: { descriptionFormatter: (p) => pointText(p.x, p.x > BASE ? "Announced path" : "Spending", p.y) } } },
-      { name: "Baseline", color: COLOURS.teal, lineWidth: 2.5, dashStyle: "Dash", data: [], zIndex: 2 },
+      { name: "Baseline", color: COLOURS.teal, lineWidth: 3, dashStyle: "Dash", data: [], zIndex: 2 },
       { type: "scatter", name: "Extra spending label", data: [], marker: { enabled: false }, enableMouseTracking: false,
         accessibility: { enabled: false }, zIndex: 4 },
     ],
