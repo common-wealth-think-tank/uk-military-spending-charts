@@ -17,8 +17,8 @@ start(["model_inputs.json"], (inputs) => {
   const real = new Map(r.histYears.map((y, i) => [y, r.realHist[i]]));
   const LABEL = { fontSize: "12px", color: COLOURS.blue, textOutline: "3px #ffffff" };
 
-  // The plan years and the target years shaded, with a white line between them, and one label for both at the foot of
-  // the bands, ending at the plot's right edge, below the lines and clear of the last year's label (drawBandLabel).
+  // The plan years and the target years shaded as one band, with one label at its foot, ending at the plot's right
+  // edge, below the lines and clear of the last year's label (drawBandLabel).
   let priceLabel, bandLabel;
   const chart = Highcharts.chart(el("chart"), {
     chart: { type: "line", events: { render() { drawBandLabel(this); placePeakLabel(this); drawPriceLabel(this); } } },
@@ -35,11 +35,7 @@ start(["model_inputs.json"], (inputs) => {
       },
       labels: { formatter() { return lab(this.value); } },
       accessibility: { description: "Financial year", rangeDescription: `From ${lab(1950)} to ${lab(LAST)}.` },
-      plotBands: [
-        { from: c.PLAN_YEARS[0] - 0.5, to: PLAN_LAST + 0.5, color: COLOURS.band },
-        { from: PLAN_LAST + 0.5, to: LAST + 0.5, color: COLOURS.band },
-      ],
-      plotLines: [{ value: PLAN_LAST + 0.5, color: "#ffffff", width: 2, zIndex: 1 }],
+      plotBands: [{ from: c.PLAN_YEARS[0] - 0.5, to: LAST + 0.5, color: COLOURS.band }],
     },
     yAxis: {
       min: 0, max: Math.max(...r.realProj, ...r.realHist) / 1000 * 1.12, labels: { formatter() { return `£${this.value}bn`; } },
