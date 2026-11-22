@@ -27,8 +27,9 @@ start(["per_person.json"], (d) => {
       labels: { align: "left", x: 2 - LEFT, reserveSpace: false, useHTML: true, formatter() { return label(bars[this.pos]); } } },
     // No value axis or gridlines: each bar shows its value.
     yAxis: { min: 0, max: d.uk, visible: false },
-    tooltip: { formatter() { return `${this.point.name}: ${usd(this.y)}`; } },
-    plotOptions: { bar: { borderWidth: 0, borderRadius: 0, groupPadding: 0.12, pointPadding: 0.08 } },
+    // No tooltips, and nothing changes on hover: the labels say it all.
+    tooltip: { enabled: false },
+    plotOptions: { bar: { borderWidth: 0, borderRadius: 0, groupPadding: 0.12, pointPadding: 0.08, states: { hover: { enabled: false } } } },
     series: [{ name: "US dollars per person", data: [] }],
   });
 

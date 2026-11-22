@@ -43,9 +43,10 @@ start(["alignment.json"], (d) => {
         + `not US-aligned ${usd(g.not_aligned)}bn (${100 - alignedPct}%).`,
       point: { descriptionFormatter: (p) => `${p.name}: ${usd(p.y)}bn, ${p.options.share}%.` } },
     legend: { enabled: false },
-    tooltip: { formatter() { return `${this.point.name}: ${usd(this.y)}bn`; } },
+    // No tooltips, and nothing changes on hover: the labels say it all.
+    tooltip: { enabled: false },
     plotOptions: { pie: { startAngle: 0, borderWidth: 1, borderColor: "#ffffff", size: "100%",
-      states: { hover: { halo: false, brightness: 0 }, inactive: { enabled: false } },
+      states: { hover: { enabled: false }, inactive: { enabled: false } },
       // Room for each label's longest line, or Highcharts squeezes the box and that line spills to the right of the
       // others; placeLabels moves the boxes, and nothing is hidden for overlapping where Highcharts first puts them.
       dataLabels: { enabled: true, distance: "-42%", crop: false, overflow: "allow", allowOverlap: true, useHTML: true,
