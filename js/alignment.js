@@ -22,8 +22,22 @@ start(["alignment.json"], (d) => {
     { name: "Not US-aligned", y: g.not_aligned, share: 100 - alignedPct, color: COLOURS.green, text: COLOURS.ink, breakShare: true },
   ];
 
+  // Each label is centred on a point along its slice's middle: a third of the way out for the slice of more than half the
+  // pie, in the middle of its mass and clear of the other slice; just over halfway out for the smaller one. (Highcharts
+  // hangs labels inside a pie from that point rather than centring them on it.)
+  function placeLabels(ch) {
+    const s = ch.series[0], r = s.center[2] / 2;
+    for (const p of s.points) {
+      const label = p.dataLabel;
+      if (!label) continue;
+      const d = (p.percentage > 50 ? 0.33 : 0.58) * r, box = label.getBBox();
+      label.attr({ translateX: s.center[0] + Math.cos(p.angle) * d - box.width / 2,
+        translateY: s.center[1] + Math.sin(p.angle) * d - box.height / 2 });
+    }
+  }
+
   const chart = Highcharts.chart(el("chart"), {
-    chart: { type: "pie", spacing: [4, 4, 4, 4] },
+    chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); } } },
     accessibility: { screenReaderSection: { beforeChartFormat: screenReaderHeading("Global military spending by alignment chart") },
       description: `Global military expenditure in ${d.year}, ${usd(d.total)}bn: US and US-aligned ${usd(aligned)}bn (${alignedPct}%), `
         + `not US-aligned ${usd(g.not_aligned)}bn (${100 - alignedPct}%).`,
@@ -32,13 +46,15 @@ start(["alignment.json"], (d) => {
     tooltip: { formatter() { return `${this.point.name}: ${usd(this.y)}bn`; } },
     plotOptions: { pie: { startAngle: 0, borderWidth: 1, borderColor: "#ffffff", size: "100%",
       states: { hover: { halo: false, brightness: 0 }, inactive: { enabled: false } },
-      dataLabels: { enabled: true, distance: "-42%", crop: false, overflow: "allow", useHTML: true,
+      // Room for each label's longest line, or Highcharts squeezes the box and that line spills to the right of the
+      // others; placeLabels moves the boxes, and nothing is hidden for overlapping where Highcharts first puts them.
+      dataLabels: { enabled: true, distance: "-42%", crop: false, overflow: "allow", allowOverlap: true, useHTML: true,
         formatter() {
           const o = this.point.options;
           return `<div style="text-align:center;white-space:nowrap"><span style="font-family:${SANS};font-weight:700">${this.point.name}`
             + `${o.breakShare ? "<br>" : " "}(${o.share}%)</span><br>${usd(this.y)}</div>`;
         },
-        style: { fontSize: "13px", textOutline: "none", fontWeight: "normal", textAlign: "center", whiteSpace: "nowrap" } } } },
+        style: { fontSize: "13px", width: "170px", textOutline: "none", fontWeight: "normal", textAlign: "center", whiteSpace: "nowrap" } } } },
     series: [{ name: "Military expenditure", data: slices.map((s) => ({ name: s.name, y: s.y, share: s.share, breakShare: s.breakShare,
       color: s.color, dataLabels: { style: { color: s.text } } })) }],
   });
@@ -47,19 +63,18 @@ start(["alignment.json"], (d) => {
     chart.update({ plotOptions: { pie: { dataLabels: { style: { fontSize: narrow() ? "12px" : "13px" } } } } });
     setTitle(el("title"), "The US and US-Aligned Countries Make Up Almost 80% of Global Military Spending");
     el("description").textContent = `Global military expenditure by geopolitical alignment, ${d.year}, $bn`;
+    // The breakdown of the blue slice: its total, ruled off, then the parts that add up to it.
     const inset = el("inset");
     inset.replaceChildren();
-    const title = document.createElement("p");
-    title.className = "inset-title";
-    title.textContent = `US and US-aligned: ${alignedPct}%`;
     const list = document.createElement("dl");
-    for (const p of parts) {
+    for (const [name, share, cls] of [["US and US-aligned", alignedPct, "total"], ...parts.map((p) => [p.name, p.whole, ""])]) {
       const dt = document.createElement("dt"), dd = document.createElement("dd");
-      dt.textContent = p.name;
-      dd.textContent = `${p.whole}%`;
+      dt.textContent = name;
+      dd.textContent = `${share}%`;
+      if (cls) { dt.className = cls; dd.className = cls; }
       list.append(dt, dd);
     }
-    inset.append(title, list);
+    inset.append(list);
     el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. US-aligned covers "
       + "NATO members, US major non-NATO allies, Shield of the Americas members and US security partners, and includes "
       + `EU-level expenditure. The US-aligned grouping is ${d.aligned_entities} entities; ${d.not_aligned_countries} countries `
