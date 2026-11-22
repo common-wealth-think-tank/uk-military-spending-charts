@@ -403,6 +403,18 @@ function update() {
   // First on SIPRI definitions against the plans' end too, as on NATO's (the user's decision, the second review of
   // 3 November 2026: it came third).
   if (isNato(state) || fromPlans(o.held)) notes.push(`Spending to 2025/26 follows NATO figures${estimate}.`);
+  // The shares are of financial-year GDP, where NATO divides 2025/26 and earlier by calendar-year GDP (the user's
+  // request, 19 November 2026). On the latest forecast, whose figures are those of the latest NATO report, a baseline
+  // year's share is set beside the published NATO share, which the build checks is the higher; on the other forecasts,
+  // or another baseline, the sentence says only how NATO divides (the order can reverse: 2020/21, the March 2025 forecast).
+  if (isNato(state)) {
+    const year = { s2025: BASE, s2024: BASE - 1 }[o.held];
+    const published = o.gdp_vintage === "latest" && year !== undefined ? c.NATO_PUBLISHED_SHARE[year] : undefined;
+    notes.push("Shares are of financial-year GDP, as in the government's plans. " + (published === undefined
+      ? `NATO divides figures to ${lab(BASE)} by calendar-year GDP.`
+      : `NATO divides by calendar-year GDP, so the published NATO share for ${lab(year)} is ${published.toFixed(2)}%, not `
+        + `${r.sharesHeld[r.years.indexOf(BASE + 1)].toFixed(2)}%.`));
+  }
   if (isNato(state)) {
     // The baseline as chosen under "Compared with" and "Baseline" (the review of 2 November 2026: the caption always
     // said the 2025/26 share).
