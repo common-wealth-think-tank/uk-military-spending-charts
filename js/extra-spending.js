@@ -2,8 +2,8 @@
 // and the gap between them, by financial year.
 import { start } from "./data.js";
 import { createModel, DEFAULTS as MODEL_DEFAULTS } from "./model.js";
-import { COLOURS, bn, fixed, fyLabel as lab, narrow, pointText, readHash, refresh, renderGroups, renderTiles,
-  screenReaderHeading, setTitle, writeHash } from "./ui.js";
+import { COLOURS, bn, fixed, fyLabel as lab, narrow, pointText, readHash, refresh, renderGroups, screenReaderHeading,
+  setTitle, writeHash } from "./ui.js";
 
 start(["model_inputs.json"], (inputs) => {
   const model = createModel(inputs);
@@ -29,7 +29,7 @@ start(["model_inputs.json"], (inputs) => {
   const state = {};
   readHash(GROUPS, state, DEFAULTS);
   const HALO = "3px #ffffff";
-  const LABEL = (color) => ({ fontSize: "12px", color, textOutline: HALO });
+  const LABEL = (color) => ({ fontSize: "12px", fontWeight: "700", color, textOutline: HALO });
   let targetLabel;
 
   const chart = Highcharts.chart(el("chart"), {
@@ -107,7 +107,7 @@ start(["model_inputs.json"], (inputs) => {
     for (let cx = LAST - 1; cx >= BASE + 1; cx -= 0.25) {
       if (fits(X.toPixels(cx) - w / 2, mid(cx) - h / 2)) return { x: cx, y: Y.toValue(mid(cx)), lines: 1 };
     }
-    const probe = chart.renderer.text(twoLines, -9999, -9999).css({ fontSize: "13px" }).add();
+    const probe = chart.renderer.text(twoLines, -9999, -9999).css({ fontSize: "13px", fontWeight: "700" }).add();
     ({ width: w, height: h } = probe.getBBox());
     probe.destroy();
     for (let cx = LAST - 0.5; cx >= BASE + 1; cx -= 0.25) {
@@ -158,12 +158,6 @@ start(["model_inputs.json"], (inputs) => {
       + `Military over ${span[0].toUpperCase() + span.slice(1)} Years${state.units === "real" ? ` (${lab(PRICE_YEAR)} Prices)` : ""}`);
     el("description").textContent = `UK military spending on NATO definitions, £bn ${units}`;
     const i = r.years.length - 1;
-    renderTiles(el("tiles"), [
-      [`Extra over ${span} years`, bn(r.gap), `${lab(BASE + 1)}–${lab(LAST)}, ${units}`],
-      [`Extra in ${lab(LAST)} alone`, bn(r.gapByYear[i]), units[0].toUpperCase() + units.slice(1)],
-      [`Spending in ${lab(LAST)}`, bn(r.announced[i]),
-        `${r.sharesAnnounced[i].toFixed(1)}% of GDP, vs a baseline of ${bn(r.held[i])} (${r.sharesHeld[i].toFixed(1)}%)`],
-    ]);
 
     const pts = r.years.map((y, k) => [y, r.announced[k] / 1000]);
     const heldPts = r.years.filter((y) => y >= BASE).map((y) => [y, r.held[r.years.indexOf(y)] / 1000]);
@@ -186,7 +180,7 @@ start(["model_inputs.json"], (inputs) => {
     pts[p] = { x: pts[p][0], y: pts[p][1], dataLabels: name("Announced path", COLOURS.blue, "right", "bottom", -8) };
     heldPts[1] = { x: heldPts[1][0], y: heldPts[1][1], dataLabels: name("Baseline", COLOURS.tealInk, "left", "top", 8) };
     // Room on the right for the longer end label.
-    const right = Math.ceil(Math.max(...[pathEnd, heldEnd].flatMap((s) => s.split("<br>")).map((s) => measure(s, { fontSize: "12px" })))) + 14;
+    const right = Math.ceil(Math.max(...[pathEnd, heldEnd].flatMap((s) => s.split("<br>")).map((s) => measure(s, { fontSize: "12px", fontWeight: "700" })))) + 14;
     chart.update({ chart: { spacingRight: right }, accessibility: { description: `UK military spending, ${lab(c.FIRST)} to ${lab(LAST)}: `
       + `the announced path to ${c.TARGETS[LAST]}% of GDP against a baseline, with the gap shaded.` } }, false);
     const drawn = [...r.announced, ...r.held.slice(r.years.indexOf(BASE))];
@@ -201,7 +195,7 @@ start(["model_inputs.json"], (inputs) => {
     const a = r.years.indexOf(LAST - 1), midY = (r.announced[a] + r.held[a]) / 2000;
     const total = (x, y, align, dx, lines = 1) => [{ x, y, dataLabels: { enabled: true, crop: false, padding: 0, overflow: "allow",
       align, verticalAlign: "middle", x: dx, y: 0, formatter: () => `${bn(r.gap, 0)}${lines === 2 ? "<br>" : " "}extra`,
-      style: { fontSize: "13px", color: COLOURS.ink, textOutline: "none" } } }];
+      style: { fontSize: "13px", fontWeight: "700", color: COLOURS.ink, textOutline: "none" } } }];
     chart.series[3].setData(total(LAST, midY, "right", -13), false, false, false);
     chart.redraw();
     // Browsers measure text a little differently, so the end labels' room is checked as drawn, and widened if short.

@@ -36,9 +36,9 @@ async function load(files, needs) {
     if (!res.ok) throw new Error(`data/${file}: HTTP ${res.status}`);
     return res.json();
   }));
-  // The chart's labels are measured in these fonts, so they load first: three seconds at most.
+  // Roboto before the chart draws, so its labels are measured and placed in it: three seconds at most.
   if (document.fonts) {
-    await Promise.race([Promise.all(["700 12px 'Unica 77'", "400 12px 'Unica 77 Mono'", "400 13px 'Unica 77 Mono'"]
+    await Promise.race([Promise.all(["400 12px Roboto", "700 12px Roboto", "700 13px Roboto"]
       .map((font) => document.fonts.load(font))), new Promise((resolve) => setTimeout(resolve, 3000))]).catch(() => {});
   }
   highchartsDefaults();

@@ -2,7 +2,7 @@
 // the announced path to 3.5% of GDP.
 import { start } from "./data.js";
 import { createModel, DEFAULTS } from "./model.js";
-import { COLOURS, bn, fixed, fyLabel as lab, narrow, pointText, renderTiles, screenReaderHeading, setTitle, signed } from "./ui.js";
+import { COLOURS, bn, fixed, fyLabel as lab, narrow, pointText, screenReaderHeading, setTitle } from "./ui.js";
 
 start(["model_inputs.json"], (inputs) => {
   const model = createModel(inputs);
@@ -14,8 +14,8 @@ start(["model_inputs.json"], (inputs) => {
   const el = (name) => root.querySelector(`[data-el="${name}"]`);
   const prices = `${lab(PRICE_YEAR)} prices`;
   const r = model.historical({ ...DEFAULTS });
-  const real = new Map(r.histYears.map((y, i) => [y, r.realHist[i]]));
-  const LABEL = { fontSize: "12px", color: COLOURS.blue, textOutline: "3px #ffffff" };
+  // Labels in the line's colour, bold, with a white halo.
+  const LABEL = { fontSize: "12px", fontWeight: "700", color: COLOURS.blue, textOutline: "3px #ffffff" };
 
   // The plan years and the target years shaded as one band, with one label at its foot, ending at the plot's right
   // edge, below the lines and clear of the last year's label (drawBandLabel).
@@ -134,12 +134,6 @@ start(["model_inputs.json"], (inputs) => {
     setTitle(el("title"), `At ${c.TARGETS[LAST]}% of GDP NATO Target, UK Military Spending Would Be ${Math.abs(pct)}% `
       + `${pct >= 0 ? "above" : "below"} Its Cold War Peak`);
     el("description").textContent = `UK military spending in real terms on NATO definitions, £bn at ${prices}`;
-    renderTiles(el("tiles"), [
-      [`${lab(PRICE_YEAR)} vs Cold War peak`, signed(r.vsPeak2025, 1),
-        `${bn(real.get(PRICE_YEAR))} (NATO estimate); peak ${bn(r.peak)} in ${lab(r.peakYear)}`],
-      [`${lab(LAST)} vs Cold War peak`, signed(r.vsPeak2035, 1), `${bn(r.realProj.at(-1))} at ${prices}`],
-    ]);
-
     const hist = r.histYears.map((y, i) => [y, r.realHist[i] / 1000]);
     const proj = r.projYears.map((y, i) => [y, r.realProj[i] / 1000]);
     // The peak, the base year and the targets are marked with white-ringed dots; the last year is labelled.

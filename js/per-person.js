@@ -1,6 +1,6 @@
 // UK military spending per person against the G7 and European NATO medians, in current US dollars.
 import { start } from "./data.js";
-import { COLOURS, MONO, SANS, fixed, narrow, screenReaderHeading, setTitle, usd } from "./ui.js";
+import { COLOURS, fixed, narrow, screenReaderHeading, setTitle, usd } from "./ui.js";
 
 start(["per_person.json"], (d) => {
   const root = document.querySelector("[data-chart-page]");
@@ -13,8 +13,8 @@ start(["per_person.json"], (d) => {
   ];
   // Each bar's name, and under it how far the UK is above that median.
   const LEFT = 190;
-  const label = (b, sep = "<br>") => `<span style="font-family:${SANS};font-size:14px;color:${COLOURS.ink}">${b.name}</span>`
-    + (b.sub ? `${sep}<span style="font-family:${MONO};font-size:12px;color:${COLOURS.note}">${b.sub}</span>` : "");
+  const label = (b, sep = "<br>") => `<span style="font-size:14px;font-weight:700;color:${COLOURS.ink}">${b.name}</span>`
+    + (b.sub ? `${sep}<span style="font-size:12px;color:${COLOURS.note}">${b.sub}</span>` : "");
 
   const chart = Highcharts.chart(el("chart"), {
     chart: { type: "bar", spacing: [4, 4, 4, 0] },
@@ -38,7 +38,7 @@ start(["per_person.json"], (d) => {
   const points = (small) => bars.map((b) => ({ name: b.name, y: b.y, color: b.color, dataLabels: [
     { enabled: true, inside: true, align: "right", x: -8, crop: false, overflow: "allow", formatter() { return usd(this.y); },
       style: { fontSize: "13px", textOutline: "none", fontWeight: "normal", color: b.text } },
-    { enabled: small, useHTML: true, inside: true, align: "left", verticalAlign: "top", x: 0, y: b.sub ? -38 : -22, crop: false,
+    { enabled: small, useHTML: true, inside: true, align: "left", verticalAlign: "top", x: 0, y: b.sub ? -46 : -26, crop: false,
       overflow: "allow", formatter: () => label(b),
       style: { textOutline: "none", fontWeight: "normal", width: "400px", whiteSpace: "nowrap", textOverflow: "clip" } },
   ] }));

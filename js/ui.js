@@ -1,5 +1,5 @@
-// What the pages share: number formats, the option controls and the address that keeps them, the boxes, the
-// colours and fonts, and the Highcharts defaults.
+// What the pages share: number formats, the option controls and the address that keeps them, the colours, and the
+// Highcharts defaults.
 
 export const fyLabel = (y) => `${y}/${String((y + 1) % 100).padStart(2, "0")}`;
 // A value that rounds to zero is written as zero, never "-0.0". A whole number is rounded from the figure to one
@@ -21,10 +21,6 @@ export const COLOURS = {
   blue: "#388dff", teal: "#7ac3c1", tealInk: "#00968f", green: "#8cffa7", ink: "#181818", axis: "#a2a2a2",
   grid: "#e7e7e7", band: "#f3f3f3", note: "#666666", dark: "#333333",
 };
-// Single-quoted names, so they can go inside a label's style attribute.
-export const SANS = "'Unica 77', 'Helvetica Neue', Arial, sans-serif";
-export const MONO = "'Unica 77 Mono', ui-monospace, Menlo, Consolas, monospace";
-
 // Whether the page is narrow, as in a phone's frame (the stylesheet's own breakpoint).
 export const narrow = () => window.matchMedia("(max-width: 499px)").matches;
 
@@ -100,22 +96,6 @@ export function writeHash(groups, state, defaults) {
 }
 
 
-// Result boxes: [label, value, sub] each.
-export function renderTiles(container, tiles) {
-  container.replaceChildren(...tiles.map((texts) => {
-    const div = document.createElement("div");
-    div.className = "tile";
-    ["label", "value", "sub"].forEach((cls, i) => {
-      const p = document.createElement("p");
-      p.className = cls;
-      p.textContent = texts[i];
-      div.append(p);
-    });
-    return div;
-  }));
-}
-
-
 // The page's title and heading follow the chart's title.
 export function setTitle(el, text) {
   el.textContent = text;
@@ -125,16 +105,17 @@ export function setTitle(el, text) {
 // Screen readers hear each point as its year, its line and its value, in £bn to one decimal.
 export const pointText = (x, line, y) => `${fyLabel(x)}, ${line}: £${y.toFixed(1)}bn.`;
 
+// Everything drawn in a chart is in Roboto; the stylesheet sets the page's own text.
 export function highchartsDefaults() {
-  const axisLabels = { style: { color: COLOURS.axis, fontSize: "12px", fontFamily: SANS } };
+  const axisLabels = { style: { color: COLOURS.axis, fontSize: "12px" } };
   Highcharts.setOptions({
-    chart: { style: { fontFamily: MONO }, backgroundColor: "#ffffff", spacing: [12, 4, 8, 4], animation: false },
+    chart: { style: { fontFamily: "Roboto, Arial, sans-serif" }, backgroundColor: "#ffffff", spacing: [12, 4, 8, 4], animation: false },
     title: { text: null },
     credits: { enabled: false },
     lang: { thousandsSep: "," },
     xAxis: { lineColor: COLOURS.ink, tickLength: 0, labels: axisLabels },
     yAxis: { title: { text: null }, gridLineColor: COLOURS.grid, labels: axisLabels },
-    tooltip: { backgroundColor: "#ffffff", borderColor: "#d9d9d9", shadow: false, style: { color: COLOURS.ink, fontSize: "12px", fontFamily: MONO } },
+    tooltip: { backgroundColor: "#ffffff", borderColor: "#d9d9d9", shadow: false, style: { color: COLOURS.ink, fontSize: "12px" } },
     plotOptions: { series: { marker: { enabled: false, symbol: "circle" }, states: { hover: { lineWidthPlus: 0 }, inactive: { enabled: false } },
       animation: false } },
   });

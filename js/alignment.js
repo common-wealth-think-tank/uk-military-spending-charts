@@ -1,7 +1,7 @@
 // Global military expenditure by geopolitical alignment: the US and US-aligned countries against the rest, with the
 // first broken down beside the pie.
 import { start } from "./data.js";
-import { COLOURS, SANS, narrow, screenReaderHeading, setTitle, usd } from "./ui.js";
+import { COLOURS, narrow, screenReaderHeading, setTitle, usd } from "./ui.js";
 
 start(["alignment.json"], (d) => {
   const root = document.querySelector("[data-chart-page]");
@@ -52,7 +52,7 @@ start(["alignment.json"], (d) => {
       dataLabels: { enabled: true, distance: "-42%", crop: false, overflow: "allow", allowOverlap: true, useHTML: true,
         formatter() {
           const o = this.point.options;
-          return `<div style="text-align:center;white-space:nowrap"><span style="font-family:${SANS};font-weight:700">${this.point.name}`
+          return `<div style="text-align:center;white-space:nowrap"><span style="font-weight:700">${this.point.name}`
             + `${o.breakShare ? "<br>" : " "}(${o.share}%)</span><br>${usd(this.y)}</div>`;
         },
         style: { fontSize: "13px", width: "170px", textOutline: "none", fontWeight: "normal", textAlign: "center", whiteSpace: "nowrap" } } } },
