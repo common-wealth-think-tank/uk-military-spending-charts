@@ -17,14 +17,11 @@ start(["model_inputs.json"], (inputs) => {
   const real = new Map(r.histYears.map((y, i) => [y, r.realHist[i]]));
   const LABEL = { fontSize: "12px", color: COLOURS.blue, textOutline: "3px #ffffff" };
 
-  // The plan years and the target years shaded, with a white line between them. Their labels sit at the foot of the
-  // bands, below the lines and clear of the last year's label; each ends at its band's right edge, the targets' on the
-  // bottom row and the plans' above it, so they never run into each other or off the plot.
-  const bandLabel = (text, y) => ({ text, align: "right", verticalAlign: "bottom", x: -3, y, useHTML: true,
-    style: { color: COLOURS.note, fontSize: "12px", whiteSpace: "nowrap", textOverflow: "clip" } });
-  let priceLabel;
+  // The plan years and the target years shaded, with a white line between them, and one label for both at the foot of
+  // the bands, ending at the plot's right edge, below the lines and clear of the last year's label (drawBandLabel).
+  let priceLabel, bandLabel;
   const chart = Highcharts.chart(el("chart"), {
-    chart: { type: "line", events: { render() { placePeakLabel(this); drawPriceLabel(this); } } },
+    chart: { type: "line", events: { render() { drawBandLabel(this); placePeakLabel(this); drawPriceLabel(this); } } },
     accessibility: { screenReaderSection: { beforeChartFormat: screenReaderHeading("Historical spending chart") },
       description: `UK military spending in real terms from ${lab(r.histYears[0])}, with the announced path to ${lab(LAST)} on its way to 3.5% of GDP.` },
     legend: { enabled: false },
@@ -39,8 +36,8 @@ start(["model_inputs.json"], (inputs) => {
       labels: { formatter() { return lab(this.value); } },
       accessibility: { description: "Financial year", rangeDescription: `From ${lab(1950)} to ${lab(LAST)}.` },
       plotBands: [
-        { from: c.PLAN_YEARS[0] - 0.5, to: PLAN_LAST + 0.5, color: COLOURS.band, label: bandLabel("Plans", -24) },
-        { from: PLAN_LAST + 0.5, to: LAST + 0.5, color: COLOURS.band, label: bandLabel("Targets", -8) },
+        { from: c.PLAN_YEARS[0] - 0.5, to: PLAN_LAST + 0.5, color: COLOURS.band },
+        { from: PLAN_LAST + 0.5, to: LAST + 0.5, color: COLOURS.band },
       ],
       plotLines: [{ value: PLAN_LAST + 0.5, color: "#ffffff", width: 2, zIndex: 1 }],
     },
@@ -75,6 +72,12 @@ start(["model_inputs.json"], (inputs) => {
       }
       return false;
     });
+  }
+
+  function drawBandLabel(ch) {
+    bandLabel?.destroy();
+    bandLabel = ch.renderer.text("Plans and targets", ch.plotLeft + ch.plotWidth - 4, ch.plotTop + ch.plotHeight - 8)
+      .attr({ align: "right", zIndex: 4 }).css({ color: COLOURS.note, fontSize: "12px" }).add();
   }
 
   // The Cold War peak's label stays where it is unless it covers the peak's dot or crosses a line; then it moves to just

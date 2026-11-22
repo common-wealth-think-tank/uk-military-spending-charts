@@ -16,10 +16,10 @@ start(["alignment.json"], (d) => {
     ({ name, v, exact: pct(v), whole: Math.floor(pct(v)) }));
   let short = alignedPct - parts.reduce((s, p) => s + p.whole, 0);
   [...parts].sort((a, b) => (b.exact - b.whole) - (a.exact - a.whole)).forEach((p) => { if (short > 0) { p.whole += 1; short -= 1; } });
-  // Each slice's label: its name and share, broken where the name is long, then its value.
+  // Each slice's label, centred in it: its name, its share, then its value, a line each.
   const slices = [
     { name: "US and US-aligned", y: aligned, share: alignedPct, color: COLOURS.blue, text: "#ffffff", breakShare: true },
-    { name: "Not US-aligned", y: g.not_aligned, share: 100 - alignedPct, color: COLOURS.green, text: COLOURS.ink, breakShare: false },
+    { name: "Not US-aligned", y: g.not_aligned, share: 100 - alignedPct, color: COLOURS.green, text: COLOURS.ink, breakShare: true },
   ];
 
   const chart = Highcharts.chart(el("chart"), {
@@ -32,11 +32,11 @@ start(["alignment.json"], (d) => {
     tooltip: { formatter() { return `${this.point.name}: ${usd(this.y)}bn`; } },
     plotOptions: { pie: { startAngle: 0, borderWidth: 1, borderColor: "#ffffff", size: "100%",
       states: { hover: { halo: false, brightness: 0 }, inactive: { enabled: false } },
-      dataLabels: { enabled: true, distance: "-38%", crop: false, overflow: "allow", useHTML: false,
+      dataLabels: { enabled: true, distance: "-42%", crop: false, overflow: "allow", useHTML: true,
         formatter() {
-          const o = this.point.options, tight = this.series.chart.plotWidth < 400;
-          return `<span style="font-family:${SANS};font-weight:700">${this.point.name}${o.breakShare || tight ? "<br>" : " "}(${o.share}%)</span>`
-            + `<br>${usd(this.y)}`;
+          const o = this.point.options;
+          return `<div style="text-align:center;white-space:nowrap"><span style="font-family:${SANS};font-weight:700">${this.point.name}`
+            + `${o.breakShare ? "<br>" : " "}(${o.share}%)</span><br>${usd(this.y)}</div>`;
         },
         style: { fontSize: "13px", textOutline: "none", fontWeight: "normal", textAlign: "center", whiteSpace: "nowrap" } } } },
     series: [{ name: "Military expenditure", data: slices.map((s) => ({ name: s.name, y: s.y, share: s.share, breakShare: s.breakShare,

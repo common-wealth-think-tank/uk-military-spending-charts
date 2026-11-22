@@ -160,7 +160,6 @@ start(["model_inputs.json"], (inputs) => {
     const i = r.years.length - 1;
     renderTiles(el("tiles"), [
       [`Extra over ${span} years`, bn(r.gap), `${lab(BASE + 1)}–${lab(LAST)}, ${units}`],
-      ["Extra a year, on average", bn(r.gap / YEARS), `Average over ${span} years, ${units}`],
       [`Extra in ${lab(LAST)} alone`, bn(r.gapByYear[i]), units[0].toUpperCase() + units.slice(1)],
       [`Spending in ${lab(LAST)}`, bn(r.announced[i]),
         `${r.sharesAnnounced[i].toFixed(1)}% of GDP, vs a baseline of ${bn(r.held[i])} (${r.sharesHeld[i].toFixed(1)}%)`],

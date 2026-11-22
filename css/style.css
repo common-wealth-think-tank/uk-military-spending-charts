@@ -19,12 +19,6 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 
 .card { position: relative; background: #ffffff; border: 1px solid #e2e2e2; border-radius: 2px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.08); padding: 24px 24px 16px; }
-.card.numbered { padding-top: 66px; }
-/* The figure number, given by the embedding page as ?figure=2. */
-.figure-tab { position: absolute; top: -1px; left: 24px; min-width: 46px; padding: 10px 11px 16px; background: var(--blue);
-  color: #ffffff; font-family: var(--sans); font-weight: 700; font-size: 20px; line-height: 1; text-align: center;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%); }
-.figure-tab[hidden] { display: none; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .options { border-bottom: 1px solid var(--grid); margin: 0 0 16px; padding-bottom: 16px; }
@@ -45,7 +39,7 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 .seg input:checked + label { background: var(--blue-wash); border-color: var(--blue); color: var(--blue-ink); font-weight: 700; }
 .seg input:focus-visible + label { outline: 2px solid var(--blue); outline-offset: 2px; }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin: 16px 0 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin: 0 0 16px; }
 .tiles:empty { display: none; }
 .tile { background: var(--tile); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .tile p { margin: 0; }
@@ -59,9 +53,9 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 /* The pie with its breakdown beside it. */
 .pie-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
 .pie-row .chart { flex: 1 1 auto; min-width: 0; margin: 0; }
-.inset { flex: 0 0 auto; max-width: 46%; border-left: 3px solid var(--blue); padding: 2px 0 2px 12px; font-size: 13px; }
-.inset-title { font-family: var(--sans); font-size: 14px; margin: 0 0 8px; }
-.inset dl { margin: 0; display: grid; grid-template-columns: auto auto; gap: 6px 16px; }
+.inset { flex: 0 0 auto; max-width: 46%; border-left: 1px solid var(--rule); padding: 2px 0 2px 12px; font-size: 12px; color: var(--note); }
+.inset-title { font-size: 12px; margin: 0 0 6px; }
+.inset dl { margin: 0; display: grid; grid-template-columns: auto auto; gap: 4px 14px; }
 .inset dt { margin: 0; }
 .inset dd { margin: 0; text-align: right; }
 /* Shown only if the data or Highcharts fail to load. */
@@ -78,8 +72,6 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 @media (max-width: 499px) {
   .dw { padding: 6px 8px 12px; }
   .card { padding: 18px 14px 14px; }
-  .card.numbered { padding-top: 58px; }
-  .figure-tab { left: 14px; }
   .tiles { grid-template-columns: 1fr; gap: 12px; }
   .options-title, .chart-title { font-size: 16px; }
   .group { display: block; }
