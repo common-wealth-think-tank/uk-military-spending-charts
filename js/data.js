@@ -1,12 +1,9 @@
-// The model's inputs, loaded once for both tabs (the review of 2 November 2026: each tab loaded them itself, and a tab
-// clicked before they arrived lost its linked settings). If they, or Highcharts, fail to load, or the tabs fail to
-// draw, the page says so rather than showing empty charts.
-import { DEFAULTS, createModel } from "./model.js";
+// Loads what a page needs and draws it once Highcharts, the data and the fonts are ready. If anything fails before the
+// chart has drawn, the page shows its message instead of an empty chart; an error after that leaves the chart as it is.
 import { highchartsDefaults } from "./ui.js";
+import { setupFrame } from "./frame.js";
 
-// Safari before 15.4 (March 2022) lacks Array.prototype.at, which the tab scripts use. Where it is missing this stands
-// in for it, so those Safaris draw the page rather than show the message (the user's decision, 3 November 2026, after
-// the page was checked in WebKit: evidence/webkit_check_2026-11-03/). This module runs before the tab scripts.
+// Safari before 15.4 lacks Array.prototype.at.
 if (!Array.prototype.at) {
   Object.defineProperties(Array.prototype, { at: { value(n) {
     const i = Math.trunc(n) || 0;
@@ -14,77 +11,50 @@ if (!Array.prototype.at) {
   }, writable: true, configurable: true } });
 }
 
-// Until the tabs have drawn, any failure, here or in their first drawing, leaves the message alone on the page (the
-// second review of 3 November 2026: the tabs, a download button and an empty "Assumptions" stayed, and failures after
-// the data had loaded showed nothing). A later error doesn't blank a page already drawn.
-let drawing = true, toDraw = 2;
-// Each tab calls this when it has first drawn. Once both have, and any error either raised has been reported (a timer
-// waits for that), errors no longer blank the page.
-export function drawn() {
-  if (--toDraw === 0) setTimeout(() => { drawing = false; });
-}
+const ROOT = new URL("../", import.meta.url);
+let drawing = true;
+
 function fail() {
   if (!drawing) return;
   document.querySelector('[data-el="load-error"]').hidden = false;
-  document.querySelectorAll('[role="tablist"], [role="tabpanel"]').forEach((el) => el.remove());
+  document.querySelectorAll("[data-chart-page]").forEach((el) => el.remove());
 }
-// Only errors from the page's own scripts and Highcharts count (3 November 2026: once published, the message showed in
-// Safari while the page drew in Chrome; scripts that browser extensions add to a page raise errors here too). The
-// browser's own notices, such as a ResizeObserver loop, carry no error, and aren't failures either. The page's own
-// promises are all awaited, so a rejection elsewhere isn't one of its failures.
-const SITE = new URL(".", document.baseURI).href;
-const ours = (file) => typeof file === "string" && (file.startsWith(SITE) || file.startsWith("https://cdn.jsdelivr.net/npm/highcharts@"));
+
+// Only errors from the page's own scripts and Highcharts count; scripts that browser extensions add raise errors too.
+const ours = (file) => typeof file === "string" && (file.startsWith(ROOT.href) || file.startsWith("https://cdn.jsdelivr.net/npm/highcharts@"));
 window.addEventListener("error", (event) => {
   if (event.error && ours(event.filename)) fail();
-  else if (drawing) console.warn("Not the page's own error, so the charts still draw:", event.message, event.filename);
+  else if (drawing) console.warn("Not the page's own error, so the chart still draws:", event.message, event.filename);
 });
 
-// What the tabs read; an older copy of the data without one fails here, with the page's message, rather than leaving a
-// tab blank or a caption ending "Data as of undefined." (the reviews of 3 November 2026). The model's own inputs are
-// tried below.
-const REQUIRED = ["FIRST", "BASE", "LAST", "PRICE_YEAR", "PLAN_YEARS", "TARGETS", "PATH_ANCHORS", "NATO_SIPRI_GAP",
-  "KOREA", "KOREA_DRAWDOWN", "COLD_WAR_FULL", "COLD_WAR_EX_KOREA", "BUILDUP_START", "CLEARLY", "DEFLATORS",
-  "DEFLATOR_NAMES", "SIA_FROM", "OBR_FORECAST", "OBR_LTD", "OBR_LAST"].map((key) => `constants.${key}`)
-  .concat("data_date", "nato_2025_spring", "nato_history.archive_last");
-
-async function load() {
+async function load(files, needs) {
   if (typeof Highcharts === "undefined") throw new Error("Highcharts did not load");
-  // The extra-spending chart's shaded gap needs highcharts-more (the review of 2 November 2026), and screen readers
-  // the accessibility module (the second review of 3 November 2026).
-  if (!Highcharts.seriesTypes?.arearange) throw new Error("highcharts-more did not load");
+  if (needs.includes("more") && !Highcharts.seriesTypes?.arearange) throw new Error("highcharts-more did not load");
   if (!Highcharts.getOptions().accessibility?.screenReaderSection) throw new Error("Highcharts' accessibility module did not load");
-  // The single-file copy (bundle_site.py, 3 November 2026) carries the inputs in the page; the site fetches them,
-  // checked with the server each time, so a browser can't pair new scripts with an old copy (the review of 3 November
-  // 2026).
-  const bundled = document.getElementById("model-inputs");
-  let inputs;
-  if (bundled) inputs = JSON.parse(bundled.textContent);
-  else {
-    const res = await fetch("data/model_inputs.json", { cache: "no-cache" });
-    if (!res.ok) throw new Error(`data/model_inputs.json: HTTP ${res.status}`);
-    inputs = await res.json();
-  }
-  const missing = REQUIRED.filter((path) => path.split(".").reduce((o, key) => o?.[key], inputs) === undefined);
-  if (missing.length) throw new Error(`data/model_inputs.json lacks ${missing.join(", ")}: rebuild it`);
-  // Roboto before the charts draw, so their labels are measured and placed in it (the review of 3 November 2026: the
-  // fonts load with font-display: swap). Three seconds at most, then the charts draw anyway.
+  const data = await Promise.all(files.map(async (file) => {
+    const res = await fetch(new URL(`data/${file}`, ROOT), { cache: "no-cache" });
+    if (!res.ok) throw new Error(`data/${file}: HTTP ${res.status}`);
+    return res.json();
+  }));
+  // The chart's labels are measured in these fonts, so they load first: three seconds at most.
   if (document.fonts) {
-    await Promise.race([Promise.all(["400 12px Roboto", "700 12px Roboto", "700 13px Roboto"].map((font) => document.fonts.load(font))),
-      new Promise((resolve) => setTimeout(resolve, 3000))]).catch(() => {});
+    await Promise.race([Promise.all(["700 12px 'Unica 77'", "400 12px 'Unica 77 Mono'", "400 13px 'Unica 77 Mono'"]
+      .map((font) => document.fonts.load(font))), new Promise((resolve) => setTimeout(resolve, 3000))]).catch(() => {});
   }
-  return inputs;
+  highchartsDefaults();
+  return data;
 }
 
-export let inputs, model;
-try {
-  inputs = await load();
-  // Highcharts' defaults for both charts, set once.
-  highchartsDefaults();
-  model = createModel(inputs);
-  // The model tried on each forecast and both definitions, so an input it lacks fails here, with the message.
-  for (const gdp_vintage of ["latest", "spring2026", "summit"]) model.extra({ ...DEFAULTS, gdp_vintage });
-  for (const nato_adjust of ["none", "sipri"]) model.historical({ ...DEFAULTS, nato_adjust });
-} catch (error) {
-  fail();
-  throw error;
+// Loads the files, shows the page and calls draw with their contents, so the chart draws at its full width.
+export async function start(files, draw, needs = []) {
+  setupFrame();
+  try {
+    const data = await load(files, needs);
+    document.querySelectorAll("[data-chart-page]").forEach((el) => { el.hidden = false; });
+    draw(...data);
+    setTimeout(() => { drawing = false; });
+  } catch (error) {
+    fail();
+    throw error;
+  }
 }

@@ -1,10 +1,5 @@
-// The calculation behind both interactive charts, for any combination of assumptions. It mirrors the Python scenarios
-// in ../../build_interactive_data.py (class Model), and tests/test_model.mjs checks it against them; at the builds'
-// settings they equal the two builds' own outputs. Inputs: data/model_inputs.json, exported from those builds.
+// The calculation behind the historical and extra-spending charts. Inputs: data/model_inputs.json.
 
-// The pages open on NATO's figures as NATO counts them (decisions of 2 November 2026); SIPRI's own figures, which the
-// pages no longer show, stay as published, unlike the builds, which take the Annington buy-back's capital part and
-// SIPRI's likely revision, and hold the line like for like. Must equal DEFAULT in the Python.
 export const DEFAULTS = {
   measure: "nato", target: "own", path: "step", target_years: "fy", held: "s2025", nato_def: 0, nato_plan: "dip",
   annington: "published", revision: false, aid: "in", plan: "budget", pension: "cancel", war: "in", deflator: "YBGB",
@@ -33,8 +28,7 @@ export function createModel(inp, vintages = true) {
   const histDeflator = Object.fromEntries(c.DEFLATORS.map((d) => [d, series(fyHist.years, fyHist.deflator[d])]));
   const natoHist = inp.nato_history;
   const natoCash = series(natoHist.years, natoHist.values);
-  // NATO's figures adjusted to SIPRI's definition (decision of 2 November 2026): its 2001-02 and 2005-06 definition
-  // changes bridged with SIPRI's year-on-year change, each year before a break scaled to match.
+
   const bridgeFactor = (y) => natoHist.breaks.filter((b) => y < b).reduce((f, b) =>
     f * (natoCash.get(b) / natoCash.get(b - 1)) / (sipri.get(b) / sipri.get(b - 1)), 1);
   const natoBasis = series(natoHist.years, natoHist.basis);
@@ -43,7 +37,6 @@ export function createModel(inp, vintages = true) {
     c.DEFLATORS.map((d) => [d, series(inp.projection_deflators_fy.years, inp.projection_deflators_fy[d])]));
   const share = (cash, y) => (cash / fy.gdp.get(y)) * 100;
 
-  // £m added to SIPRI's financial years as published.
   function fyAdjustments(o) {
     const adj = new Map();
     const add = (y, v) => adj.set(y, (adj.get(y) ?? 0) + v);
@@ -57,7 +50,6 @@ export function createModel(inp, vintages = true) {
     return adj;
   }
 
-  // Spending by financial year to BASE, £m.
   function spend(o) {
     if (o.measure === "nato") return new Map(nato);
     const s = new Map(sipri);
@@ -65,8 +57,6 @@ export function createModel(inp, vintages = true) {
     return s;
   }
 
-  // NATO's measure less SIPRI's from 2026-27, in points of GDP: the intelligence account, less what the revision adds to
-  // SIPRI's 2025-26, plus what taking out the aid double count removes from it.
   const offsetOf = (o) => c.NATO_SIPRI_GAP - (o.revision ? (c.SIPRI_REVISION_GBP_M / fy.gdp.get(BASE)) * 100 : 0)
     + (o.aid === "out" ? (c.AID_DOUBLE_COUNT_GBP_M[BASE] / fy.gdp.get(BASE)) * 100 : 0);
   const warShareOf = (o) => (o.measure === "sipri" && o.war === "out" ? (war.get(BASE) / fy.gdp.get(BASE)) * 100 : 0);
@@ -80,7 +70,6 @@ export function createModel(inp, vintages = true) {
     }[shape];
   }
 
-  // The targets as shares of GDP, after the measure, re-expression and war-pension options.
   function targets(o) {
     let t30 = PATH[2030], t35 = PATH[LAST];
     if (o.measure === "nato" && o.nato_adjust === "sipri") { t30 -= c.NATO_SIPRI_GAP; t35 -= c.NATO_SIPRI_GAP; }
@@ -91,13 +80,12 @@ export function createModel(inp, vintages = true) {
     return [t30, t35];
   }
 
-  // Financial-year anchors (year -> % of GDP) after BASE: the plan years, then the targets.
   function anchors(o, s) {
     let plans;
     if (o.measure === "nato") {
       plans = Object.fromEntries(PLAN_YEARS.map((y) => [y, PATH[y]]));
       if (o.nato_plan === "own") for (const [y, v] of Object.entries(c.NATO_OWN_PLAN)) plans[Number(y)] = v;
-      // Adjusted to SIPRI's definition: the plans less the intelligence SIPRI doesn't count (the targets too, below).
+
       if (o.nato_adjust === "sipri") for (const y of PLAN_YEARS) plans[y] -= c.NATO_SIPRI_GAP;
     } else if (o.plan === "natoshares") {
       plans = Object.fromEntries(PLAN_YEARS.map((y) => [y, PATH[y] - offsetOf(o) - warShareOf(o)]));
@@ -123,11 +111,9 @@ export function createModel(inp, vintages = true) {
     return out;
   }
 
-  // Financial years FIRST-1..LAST: the announced path and the held line, £m (both are spending up to BASE).
   function fyPaths(o) {
     const s = spend(o);
-    // The held line leaves out the one-off Annington payment, whatever the history shows: a baseline holds recurring
-    // spending (decision of 2 November 2026).
+
     const hs = spend({ ...o, annington: "out" });
     const anch = anchors(o, s);
     const shares = interpolate(anch, range(BASE + 1, LAST));
@@ -137,18 +123,15 @@ export function createModel(inp, vintages = true) {
       if (y <= BASE) { announced.push(s.get(y)); held.push(s.get(y)); continue; }
       const g = fy.gdp.get(y);
       let h;
-      // A baseline at the end of the announced plans (the user's request, 3 November 2026): the plans, then the last plan
-      // year's share of GDP held, or its level flat in real terms. Against it, 3% of GDP in 2030-31 is the step the IFS
-      // and Resolution Foundation cost. Both lines are the government's plans to then, so no definition change is added.
+
       const p = PLAN_YEARS[PLAN_YEARS.length - 1];
-      // The plan years are the announced path itself (the review of 3 November 2026: dividing by the deflator just
-      // multiplied by left a hair's difference, shown as "£-0.0bn").
+
       if (o.held === "plans" || o.held === "plansreal") {
         if (y <= p) h = (shares.get(y) / 100) * g;
         else if (o.held === "plans") h = (shares.get(p) / 100) * g;
         else h = ((shares.get(p) / 100) * fy.gdp.get(p) * fy.deflator.get(y)) / fy.deflator.get(p);
-      } else if (o.held === "real" || o.held === "real2024") {  // a year's spending flat in real terms; NATO's definition change
-        const b = o.held === "real" ? BASE : BASE - 1;  // still a share of GDP
+      } else if (o.held === "real" || o.held === "real2024") {
+        const b = o.held === "real" ? BASE : BASE - 1;
         h = (hs.get(b) * fy.deflator.get(y)) / fy.deflator.get(b) + (extra / 100) * g;
       } else {
         const by = o.held === "s2025" ? BASE : BASE - 1;
@@ -160,8 +143,6 @@ export function createModel(inp, vintages = true) {
     return { years, announced, held, spend: s, heldSpend: hs };
   }
 
-  // Calendar years FIRST..LAST by SIPRI's rule (a quarter of the previous financial year, three quarters of the
-  // current one). With calendar targets, the years after the plans are set on calendar-year GDP instead.
   function cyPaths(o, f) {
     const years = range(FIRST, LAST);
     const rule = (arr) => years.map((y) => {
@@ -178,9 +159,6 @@ export function createModel(inp, vintages = true) {
     return { years, announced, held };
   }
 
-  // The extra spending chart: the paths in one view (years "fy"|"cy", units "cash"|"real", price "2025"|"2026"), to its
-  // last year (end; LAST unless given: 2030 with the page's 3% target, 3 November 2026), with the gap summed over the
-  // years to it.
   function extra(o, view = { years: "fy", units: "cash", price: "2025" }) {
     const f = fyPaths(o);
     let years, announced, held, d, g;
@@ -207,8 +185,6 @@ export function createModel(inp, vintages = true) {
     };
   }
 
-  // The historical chart: spending in real terms on the chosen deflator, by financial year from 1950/51 (SIPRI's
-  // figures, or NATO's own), then the path to LAST.
   function historical(o) {
     const nato = o.measure === "nato";
     const f = fyPaths(o);
@@ -226,7 +202,7 @@ export function createModel(inp, vintages = true) {
     let peak = -Infinity, peakYear = null;
     histYears.forEach((y, i) => { if (y >= w[0] && y <= w[1] && realHist[i] > peak) { peak = realHist[i]; peakYear = y; } });
     const real = new Map(histYears.map((y, i) => [y, realHist[i]]));
-    // The build-up test's series: as drawn, or with SIPRI's rebased years back on NATO's pre-1986 basis.
+
     const rebasing = nato ? "published" : (o.rebasing ?? "published");
     const test = new Map(real);
     if (rebasing === "onebasis") {
@@ -237,8 +213,7 @@ export function createModel(inp, vintages = true) {
     const lastOld = Math.max(...Object.keys(c.NATO_PRE_1986_GBP_M).map(Number));
     const base = c.BUILDUP_START - 1, k = PRICE_YEAR - base;
     const rate = (a, n = k) => (test.get(a + n) / test.get(a)) ** (1 / n) - 1;
-    // Whether the test counts the period from a: on NATO's figures, none that crosses a break in its series or whose
-    // ends sit on different bases; on SIPRI's, by the rebasing option.
+
     const whole = (a) => {
       if (nato) return natoBasis.get(a) === natoBasis.get(a + k) && (bridged || !natoHist.breaks.some((b) => a < b && b <= a + k));
       if (rebasing === "onebasis") return !(a <= lastOld && lastOld < a + k);
@@ -263,8 +238,6 @@ export function createModel(inp, vintages = true) {
     };
   }
 
-  // Earlier forecasts: the same calculation on their GDP and prices (and, for the spreadsheet's, its 2025-26 spending
-  // on NATO's measure).
   const springNato = { ...inp.nato_fy, values: inp.nato_fy.values.map((v, i) => (inp.nato_fy.years[i] === BASE ? inp.nato_2025_spring : v)) };
   const others = vintages ? {
     summit: createModel({ ...inp, fy: inp.fy_summit, cy: inp.cy_summit }, false),

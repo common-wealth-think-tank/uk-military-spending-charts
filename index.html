@@ -2,63 +2,24 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<!-- One layout everywhere: phones show the desktop page and zoom and pan (the user's decision, 2 November 2026). -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>UK military spending to 2035</title>
-<meta name="description" content="UK military spending 1950/51–2035/36, and the extra spending needed to reach 3% or 3.5% of GDP, with the assumptions selectable.">
-<link rel="icon" href="data:,"><!-- No icon: browsers would otherwise ask for /favicon.ico, which the site lacks (3 November 2026). -->
+<title>Military spending charts</title>
+<meta name="description" content="Charts on UK and global military spending by the Transition Security Project.">
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/highcharts@11.4.8/highcharts.js" integrity="sha384-XxsZMNol0nU0LnC2cYsyhRNbfyK7CPmF7WrlFvZDdlCKn9hzVkXsHxCHVaKwkl76" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/highcharts@11.4.8/highcharts-more.js" integrity="sha384-E5MZlKp6OsxzcS2elFrYMDs+asezSncszxSlDK49djOdfB3HaepyOAAAIAWdSbFc" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/highcharts@11.4.8/modules/accessibility.js" integrity="sha384-RFRqB325VNHIIuDAhM+VeFF+SkZwLBzZioBGl5Eklzl88CWphk90Q7ACAcOt8R8R" crossorigin="anonymous"></script>
 </head>
 <body>
 <main class="dw">
-  <h1 class="visually-hidden">UK military spending to 2035</h1>
-  <div class="tabs" role="tablist" aria-label="Charts">
-    <button type="button" role="tab" id="tab-historical" aria-controls="historical" aria-selected="true">Historical spending</button>
-    <button type="button" role="tab" id="tab-extra" aria-controls="extra" aria-selected="false" tabindex="-1">Extra spending</button>
-  </div>
-  <p class="load-error" data-el="load-error" role="alert" hidden>The charts could not load. Reload the page, or check your connection.</p>
-
-  <!-- Both tabs stay hidden until js/tabs.js shows one, once the data have loaded and the charts can draw: a load shows
-       the tab names only, and a failure the message alone (the second review of 3 November 2026). The titles and source
-       lines are written by the tabs' scripts. -->
-  <section id="historical" role="tabpanel" aria-labelledby="tab-historical" hidden>
-    <div class="options">
-      <h2 class="options-title" id="historical-options">Assumptions</h2>
-      <section class="controls" data-el="main-controls" aria-labelledby="historical-options"></section>
-    </div>
-    <h2 class="chart-title" data-el="title"></h2>
-    <p class="description" data-el="description"></p>
-    <section class="tiles" data-el="tiles" aria-live="polite"></section>
-    <div class="chart" data-el="chart"></div>
-    <p class="notes" data-el="notes"></p>
-    <footer class="footer">
-      <span data-el="source"></span>
-      <button type="button" data-el="download">Download data (CSV)</button>
-    </footer>
-  </section>
-
-  <section id="extra" role="tabpanel" aria-labelledby="tab-extra" hidden>
-    <div class="options">
-      <h2 class="options-title" id="extra-options">Assumptions</h2>
-      <section class="controls" data-el="main-controls" aria-labelledby="extra-options"></section>
-    </div>
-    <h2 class="chart-title" data-el="title"></h2>
-    <p class="description" data-el="description"></p>
-    <section class="tiles" data-el="tiles" aria-live="polite"></section>
-    <div class="chart" data-el="chart"></div>
-    <p class="notes" data-el="notes"></p>
-    <footer class="footer">
-      <span data-el="source"></span>
-      <button type="button" data-el="download">Download data (CSV)</button>
-    </footer>
-  </section>
-
+  <article class="card">
+    <h1 class="chart-title">Military spending charts</h1>
+    <ul class="chart-list">
+      <li><a href="historical/">UK military spending against its Cold War peak</a></li>
+      <li><a href="extra-spending/">The extra UK military spending needed to reach 3.5% of GDP</a></li>
+      <li><a href="per-person/">UK military spending per person against the G7 and European NATO medians</a></li>
+      <li><a href="alignment/">Global military spending by alignment with the US</a></li>
+    </ul>
+    <footer class="footer"><span>Charts by the Transition Security Project</span></footer>
+  </article>
 </main>
-<script type="module" src="js/tabs.js"></script>
-<script type="module" src="js/historical.js"></script>
-<script type="module" src="js/extra-spending.js"></script>
 </body>
 </html>
