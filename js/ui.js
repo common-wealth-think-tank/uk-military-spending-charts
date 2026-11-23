@@ -1,7 +1,8 @@
 // What the pages share: number formats, the option controls and the address that keeps them, the colours, and the
 // Highcharts defaults.
 
-export const fyLabel = (y) => `${y}/${String((y + 1) % 100).padStart(2, "0")}`;
+// A financial year is labelled by the year it starts (2025 for 2025/26), as the charts' notes say.
+export const fyLabel = (y) => String(y);
 // A value that rounds to zero is written as zero, never "-0.0". A whole number is rounded from the figure to one
 // decimal, as the boxes give it, so the two always agree.
 const unsigned = (v, digits) => {

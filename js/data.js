@@ -1,7 +1,7 @@
 // Loads what a page needs and draws it once Highcharts, the data and the fonts are ready. If anything fails before the
 // chart has drawn, the page shows its message instead of an empty chart; an error after that leaves the chart as it is.
 import { highchartsDefaults } from "./ui.js";
-import { setupFrame } from "./frame.js";
+import { sendHeight, setupFrame } from "./frame.js";
 
 // Safari before 15.4 lacks Array.prototype.at.
 if (!Array.prototype.at) {
@@ -18,6 +18,7 @@ function fail() {
   if (!drawing) return;
   document.querySelector('[data-el="load-error"]').hidden = false;
   document.querySelectorAll("[data-chart-page]").forEach((el) => el.remove());
+  sendHeight();
 }
 
 // Only errors from the page's own scripts and Highcharts count; scripts that browser extensions add raise errors too.
@@ -52,6 +53,7 @@ export async function start(files, draw, needs = []) {
     const data = await load(files, needs);
     document.querySelectorAll("[data-chart-page]").forEach((el) => { el.hidden = false; });
     draw(...data);
+    sendHeight();
     setTimeout(() => { drawing = false; });
   } catch (error) {
     fail();

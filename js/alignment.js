@@ -81,7 +81,7 @@ start(["alignment.json"], (d) => {
   const chart = Highcharts.chart(el("chart"), {
     chart: { type: "pie", spacing: [4, 4, 4, 4], events: { render() { placeLabels(this); placeTotal(this); queueFit(this); } } },
     accessibility: { screenReaderSection: { beforeChartFormat: screenReaderHeading("Global military spending by alignment chart") },
-      description: `Global military expenditure in ${d.year}, ${usd(d.total)}bn: US and US-aligned ${usd(aligned)}bn (${alignedPct}%), `
+      description: `Global military spending in ${d.year}, ${usd(d.total)}bn: US and US-aligned ${usd(aligned)}bn (${alignedPct}%), `
         + `not US-aligned ${usd(g.not_aligned)}bn (${100 - alignedPct}%).`,
       point: { descriptionFormatter: (p) => `${p.name}: ${usd(p.y)}bn, ${p.options.share}%.` } },
     legend: { enabled: false },
@@ -96,7 +96,7 @@ start(["alignment.json"], (d) => {
         formatter() {
           const o = this.point.options;
           return `<div style="text-align:center;white-space:nowrap"><span style="font-weight:700">${this.point.name}`
-            + `${o.breakShare ? "<br>" : " "}(${o.share}%)</span><br>${usd(this.y)}</div>`;
+            + `${o.breakShare ? "<br>" : " "}(${o.share}%)</span><br>${usd(this.y)}bn</div>`;
         },
         style: { fontSize: "13px", width: "170px", textOutline: "none", fontWeight: "normal", textAlign: "center", whiteSpace: "nowrap" } } } },
     series: [{ name: "Military expenditure", data: slices.map((s) => ({ name: s.name, y: s.y, share: s.share, breakShare: s.breakShare,
@@ -106,7 +106,7 @@ start(["alignment.json"], (d) => {
   function update() {
     chart.update({ plotOptions: { pie: { dataLabels: { style: { fontSize: narrow() ? "12px" : "13px" } } } } });
     setTitle(el("title"), "The US and US-Aligned Countries Make Up Almost 80% of Global Military Spending");
-    el("description").textContent = `Global military expenditure by geopolitical alignment, ${d.year}, $bn`;
+    el("description").textContent = `Global military spending by geopolitical alignment, ${d.year}, $bn`;
     // The breakdown of the blue slice: its total, ruled off, then the parts that add up to it.
     const inset = el("inset");
     inset.replaceChildren();
@@ -121,9 +121,10 @@ start(["alignment.json"], (d) => {
     inset.append(list);
     // The world's total, in the chart's units.
     const total = document.createElement("b");
-    total.textContent = usd(d.total);
+    total.textContent = `${usd(d.total)}bn`;
     el("total").replaceChildren("Total", total);
-    el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. US-aligned covers "
+    el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. Underlying data is "
+      + "from SIPRI. US-aligned covers "
       + "NATO members, US major non-NATO allies, Shield of the Americas members and US security partners, and includes "
       + `EU-level expenditure. The US-aligned grouping is ${d.aligned_entities} entities; ${d.not_aligned_countries} countries `
       + `are classified as not US-aligned. Classification is as of ${d.classified_as_of}.`;

@@ -52,7 +52,8 @@ start(["model_inputs.json"], (inputs) => {
         data: [], zIndex: 0, accessibility: { enabled: false } },
       { name: `Spending to ${lab(BASE)}, then the announced path`, color: COLOURS.blue, lineWidth: 3, data: [], zIndex: 3,
         accessibility: { point: { descriptionFormatter: (p) => pointText(p.x, p.x > BASE ? "Announced path" : "Spending", p.y) } } },
-      { name: "Baseline", color: COLOURS.teal, lineWidth: 3, dashStyle: "Dash", data: [], zIndex: 2 },
+      { name: "Baseline", color: COLOURS.teal, lineWidth: 3, dashStyle: "Dash", data: [], zIndex: 2,
+        accessibility: { point: { descriptionFormatter: (p) => pointText(p.x, p.series.name, p.y) } } },
       { type: "scatter", name: "Extra spending label", data: [], marker: { enabled: false }, enableMouseTracking: false,
         accessibility: { enabled: false }, zIndex: 4 },
     ],
@@ -156,15 +157,15 @@ start(["model_inputs.json"], (inputs) => {
 
     setTitle(el("title"), `Reaching ${c.TARGETS[LAST]}% of GDP Would Mean £${fixed(r.gap / 1000, 0)} Billion More on the `
       + `Military over ${span[0].toUpperCase() + span.slice(1)} Years${state.units === "real" ? ` (${lab(PRICE_YEAR)} Prices)` : ""}`);
-    el("description").textContent = `UK military spending on NATO definitions, £bn ${units}`;
+    el("description").textContent = `UK military spending ${state.units === "cash" ? "" : "in real terms "}on NATO definitions, £bn ${units}`;
     const i = r.years.length - 1;
 
     const pts = r.years.map((y, k) => [y, r.announced[k] / 1000]);
     const heldPts = r.years.filter((y) => y >= BASE).map((y) => [y, r.held[r.years.indexOf(y)] / 1000]);
     const gapPts = r.years.filter((y) => y >= BASE).map((y) => { const k = r.years.indexOf(y); return [y, r.held[k] / 1000, r.announced[k] / 1000]; });
-    // The end labels give the last year's figures; on narrow frames, the figures alone.
-    const pathEnd = `£${fixed(pts[i][1], 0)}bn${small ? "" : `<br>${c.TARGETS[LAST]}% of GDP target`}`;
-    const heldEnd = `£${fixed(heldPts.at(-1)[1], 0)}bn${small ? "" : `<br>${r.sharesHeld[i].toFixed(1)}% of GDP`}`;
+    // The end labels give the last year's figures, to one decimal; on narrow frames, the figures alone.
+    const pathEnd = `£${fixed(pts[i][1], 1)}bn${small ? "" : `<br>${c.TARGETS[LAST]}% of GDP target`}`;
+    const heldEnd = `£${fixed(heldPts.at(-1)[1], 1)}bn${small ? "" : `<br>${r.sharesHeld[i].toFixed(1)}% of GDP`}`;
     const end = (text, color) => ({ enabled: true, crop: false, overflow: "allow", allowOverlap: true, align: "left", x: 6, y: 0,
       formatter: () => text, style: LABEL(color) });
     const mark = { enabled: true, symbol: "circle", radius: 5, fillColor: COLOURS.blue, lineColor: "#ffffff", lineWidth: 2 };
@@ -218,10 +219,11 @@ start(["model_inputs.json"], (inputs) => {
     if (lift > 0 || nameShift > 0 || spot !== undefined) chart.redraw();
 
     el("notes").textContent = [
-      `Financial years; figures are in ${state.units === "cash" ? "nominal terms" : `${prices}, using a GDP deflator`}.`,
+      "Years refer to financial years, labelled by their starting year.",
+      `Figures are in ${state.units === "cash" ? "cash terms" : `${prices}, using a GDP deflator`}.`,
       `Underlying data is from NATO; spending in ${lab(BASE)} is a NATO estimate.`,
       `“Extra” is the cumulative gap over ${lab(BASE + 1)}–${lab(LAST)} between the announced path and the baseline, which `
-        + `holds military spending at its ${lab(heldYear)} share of financial-year GDP, ${heldShare.toFixed(1)}%.`,
+        + `holds military spending at its ${lab(heldYear)} share of GDP, ${heldShare.toFixed(1)}%.`,
       `The announced path follows the Defence Investment Plan to ${lab(PLAN_LAST)}, reaches ${c.TARGETS[UK_TARGET]}% of GDP, `
         + `the government's target, in ${lab(UK_TARGET)}, then rises linearly to ${c.TARGETS[LAST]}%, the NATO target, in `
         + `${lab(LAST)}, using OBR forecasts and long-term assumptions.`,

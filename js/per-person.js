@@ -52,8 +52,8 @@ start(["per_person.json"], (d) => {
     }, false);
     chart.series[0].setData(points(small), false, false, false);
     chart.redraw();
-    setTitle(el("title"), `UK Military Spending per Person Is ${higher(europe)}% Above the Median for NATO Countries in Europe`);
-    el("description").textContent = `Annual military spending per person, ${d.year}`;
+    setTitle(el("title"), `UK Military Spending per Person Is ${higher(europe)}% above the Median for NATO Countries in Europe`);
+    el("description").textContent = `Annual military spending per person, ${d.year}, $`;
     el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. Underlying data is "
       + "from SIPRI. The medians include the UK; the European NATO grouping excludes Türkiye.";
     el("source").textContent = "Chart: Transition Security Project • Source: Author's analysis of SIPRI data";

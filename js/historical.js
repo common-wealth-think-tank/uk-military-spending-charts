@@ -46,7 +46,8 @@ start(["model_inputs.json"], (inputs) => {
     },
     tooltip: { formatter() { return `${lab(this.x)}: £${this.y.toFixed(1)}bn`; } },
     series: [
-      { name: "NATO", color: COLOURS.blue, lineWidth: 3, data: [] },
+      { name: "NATO", color: COLOURS.blue, lineWidth: 3, data: [],
+        accessibility: { point: { descriptionFormatter: (p) => pointText(p.x, p.series.name, p.y) } } },
       { name: "Announced path", color: COLOURS.blue, lineWidth: 3, dashStyle: "Dash", data: [],
         // Its first point is the NATO figure the path starts from.
         accessibility: { point: { descriptionFormatter: (p) =>
@@ -153,7 +154,8 @@ start(["model_inputs.json"], (inputs) => {
     chart.redraw();
 
     el("notes").textContent = [
-      `Financial years; figures are in ${prices}, using a GDP deflator.`,
+      "Years refer to financial years, labelled by their starting year.",
+      `Figures are in ${prices}, using a GDP deflator.`,
       `Underlying data is from NATO; spending in ${lab(BASE)} is a NATO estimate.`,
       `The Cold War peak is the highest year in ${lab(c.COLD_WAR_FULL[0])}–${lab(c.COLD_WAR_FULL[1])}.`,
       `The announced path (dashed) follows the Defence Investment Plan to ${lab(PLAN_LAST)}, reaches ${c.TARGETS[UK_TARGET]}% `
