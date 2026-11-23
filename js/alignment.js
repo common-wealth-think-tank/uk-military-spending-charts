@@ -123,8 +123,12 @@ start(["alignment.json"], (d) => {
     const total = document.createElement("b");
     total.textContent = `${usd(d.total)}bn`;
     el("total").replaceChildren("Total", total);
-    el("notes").textContent = "Calendar year; figures are in current US dollars at market exchange rates. Underlying data is "
-      + "from SIPRI. US-aligned covers "
+    // The countries without a figure for the year, which SIPRI's world total covers with its own estimates.
+    const n = d.estimated_countries, words = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+    const estimates = n ? `; the world total includes SIPRI estimates for ${words[n] ?? n} ${n === 1 ? "country" : "countries"} `
+      + `without ${d.year} figures` : "";
+    el("notes").textContent = `Figures are for calendar year ${d.year}, in current US dollars at market exchange rates. `
+      + `Spending figures are from SIPRI${estimates}. US-aligned covers `
       + "NATO members, US major non-NATO allies, Shield of the Americas members and US security partners, and includes "
       + `EU-level expenditure. The US-aligned grouping is ${d.aligned_entities} entities; ${d.not_aligned_countries} countries `
       + `are classified as not US-aligned. Classification is as of ${d.classified_as_of}.`;
