@@ -156,13 +156,11 @@ start(["model_inputs.json"], (inputs) => {
     el("notes").textContent = [
       "Years refer to financial years, labelled by their starting year.",
       `Figures are in ${prices}, using a GDP deflator.`,
-      `Underlying data is from NATO; spending in ${lab(BASE)} is a NATO estimate.`,
+      `Spending figures are from NATO; ${lab(BASE)} is a NATO estimate.`,
       `The Cold War peak is the highest year in ${lab(c.COLD_WAR_FULL[0])}–${lab(c.COLD_WAR_FULL[1])}.`,
       `The announced path (dashed) follows the Defence Investment Plan to ${lab(PLAN_LAST)}, reaches ${c.TARGETS[UK_TARGET]}% `
         + `of GDP, the government's target, in ${lab(UK_TARGET)}, then rises linearly to ${c.TARGETS[LAST]}%, the NATO target, `
         + `in ${lab(LAST)}, using OBR forecasts and long-term assumptions.`,
-      `Some of the rise is a change in what the figures count, not new spending: from ${lab(c.SIA_FROM)} the UK appears to `
-        + `count its whole intelligence budget, which NATO figures to ${lab(BASE)} do not.`,
     ].join(" ");
     el("source").textContent = "Chart: Transition Security Project • Source: Author's analysis of NATO, MOD, HM Treasury, OBR and ONS data";
   }

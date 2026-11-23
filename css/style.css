@@ -28,7 +28,6 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* The options sit below the chart, ruled off from it and from the caption. */
 .options { border-top: 1px solid var(--grid); border-bottom: 1px solid var(--grid); margin: 0 0 16px; padding: 16px 0; }
-.options-title { font-family: var(--sans); font-size: 20px; color: var(--ink); margin: 0 0 16px; }
 .chart-title { font-family: var(--sans); font-size: 20px; color: var(--title); line-height: 1.2; margin: 0 0 12px; }
 .description { font-family: var(--serif); font-size: 12px; line-height: 1.35; margin: 0 0 16px; }
 
@@ -74,7 +73,7 @@ body { margin: 0; color: var(--ink); font-family: var(--mono); font-size: 14px; 
 @media (max-width: 499px) {
   .dw { padding: 6px 8px 12px; }
   .card { padding: 18px 14px 14px; }
-  .options-title, .chart-title { font-size: 16px; }
+  .chart-title { font-size: 16px; }
   .group { display: block; }
   .group-label { display: block; font-size: 12px; margin: 0 0 4px; }
   .group-note { font-size: 10px; margin-top: 4px; }

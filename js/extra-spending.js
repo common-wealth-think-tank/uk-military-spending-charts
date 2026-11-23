@@ -1,4 +1,4 @@
-// The extra spending needed to reach 3.5% of GDP: the announced path against a baseline held at a year's share of GDP,
+// The extra spending needed to reach 3.5% of GDP: the announced path against a baseline held at the base year's share of GDP,
 // and the gap between them, by financial year.
 import { start } from "./data.js";
 import { createModel, DEFAULTS as MODEL_DEFAULTS } from "./model.js";
@@ -17,14 +17,12 @@ start(["model_inputs.json"], (inputs) => {
   const root = document.querySelector("[data-chart-page]");
   const el = (name) => root.querySelector(`[data-el="${name}"]`);
   const prices = `${lab(PRICE_YEAR)} prices`;
-  // The baseline holds spending at the base year's share of GDP, or the year before's.
-  const HELD = { [BASE - 1]: "s2024", [BASE]: "s2025" };
-  const DEFAULTS = { units: "cash", held_year: String(BASE) };
+  // The baseline holds spending at the base year's share of GDP.
+  const HELD = "s2025";
+  const DEFAULTS = { units: "cash" };
   const GROUPS = [
     { key: "units", label: "Units", options: [{ value: "cash", label: "Cash" }, { value: "real", label: `Real terms, ${prices}` }],
       help: (s) => (s.units === "real" ? "Real terms: adjusted for inflation with the GDP deflator, the price of everything the UK produces." : "") },
-    { key: "held_year", label: "Baseline", options: [
-      { value: String(BASE - 1), label: `${lab(BASE - 1)} share of GDP` }, { value: String(BASE), label: `${lab(BASE)} share of GDP` }] },
   ];
   const state = {};
   readHash(GROUPS, state, DEFAULTS);
@@ -146,12 +144,12 @@ start(["model_inputs.json"], (inputs) => {
   function update() {
     writeHash(GROUPS, state, DEFAULTS);
     refresh(GROUPS, state);
-    const o = { ...MODEL_DEFAULTS, held: HELD[state.held_year] };
+    const o = { ...MODEL_DEFAULTS, held: HELD };
     const view = { years: "fy", price: String(PRICE_YEAR), end: LAST };
     const cash = model.extra(o, { ...view, units: "cash" }), realTerms = model.extra(o, { ...view, units: "real" });
     const r = state.units === "cash" ? cash : realTerms;
     const units = state.units === "cash" ? "in cash" : `at ${prices}`;
-    const heldYear = Number(state.held_year);
+    const heldYear = BASE;
     const heldShare = r.sharesHeld[r.years.indexOf(BASE + 1)];
     const small = narrow();
 
@@ -221,14 +219,14 @@ start(["model_inputs.json"], (inputs) => {
     el("notes").textContent = [
       "Years refer to financial years, labelled by their starting year.",
       `Figures are in ${state.units === "cash" ? "cash terms" : `${prices}, using a GDP deflator`}.`,
-      `Underlying data is from NATO; spending in ${lab(BASE)} is a NATO estimate.`,
+      `Spending figures are from NATO; ${lab(BASE)} is a NATO estimate.`,
       `“Extra” is the cumulative gap over ${lab(BASE + 1)}–${lab(LAST)} between the announced path and the baseline, which `
         + `holds military spending at its ${lab(heldYear)} share of GDP, ${heldShare.toFixed(1)}%.`,
       `The announced path follows the Defence Investment Plan to ${lab(PLAN_LAST)}, reaches ${c.TARGETS[UK_TARGET]}% of GDP, `
         + `the government's target, in ${lab(UK_TARGET)}, then rises linearly to ${c.TARGETS[LAST]}%, the NATO target, in `
         + `${lab(LAST)}, using OBR forecasts and long-term assumptions.`,
-      `Some of the gap is a change in what the figures count, not new spending: from ${lab(c.SIA_FROM)} the UK appears to `
-        + "count its whole intelligence budget, which the baseline does not.",
+      `Part of the gap may reflect a change in what is counted: from ${lab(c.SIA_FROM)}, the UK appears to include its `
+        + "entire intelligence budget in the NATO figures.",
     ].join(" ");
     el("source").textContent = "Chart: Transition Security Project • Source: Author's analysis of NATO, MOD, HM Treasury, OBR and ONS data";
   }
